@@ -24,20 +24,15 @@ The update manifest is designed as a self-contained envelope:
 ```json
 {
   "payload": {
-    "version": "1.0.0",
-    "release_date": "2026-07-17T19:21:26Z",
-    "assets": {
-      "windows-x86_64": {
-        "filename": "Hydrosphere-1.0.0-win-x86_64-per-user.exe",
-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-      }
-    }
+    "...": "Defined by the Hydrosphere update manifest V1 contract"
   },
   "algorithm": "ed25519",
   "key_id": "update-prod-2026-01",
   "signature": "..."
 }
 ```
+
+The payload fields must follow the versioned update-manifest contract approved by the main Hydrosphere repository. This distribution repository does not define an independent schema.
 
 > [!NOTE]
 > This structure is provisional and pending final validation in the main private issue #208.

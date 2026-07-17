@@ -32,4 +32,4 @@ Once the full flow defined in the main repository's private issue #208 (internal
 
 ## Documentation Reference
 
-For details on the planned layout and structure of releases, see [docs/release-layout.md](file:///c:/Users/alber/Desktop/A2DesarrolloWeb/Hydrosphere-Distribution/docs/release-layout.md).
+For details on the planned layout and structure of releases, see [docs/release-layout.md](docs/release-layout.md).
