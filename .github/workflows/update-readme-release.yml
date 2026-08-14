@@ -1,14 +1,21 @@
-# Actualiza el README público de descarga tras publicar una release estable.
+# Actualiza el README público de descarga tras una release estable.
 #
-# Disparo: release publicada (no hay workflow canónico de publicación en este
-# repositorio; las releases las crea tools.distribution.publish del repo
-# privado Hydrosphere). workflow_dispatch permite reintentar sin republicar.
+# Disparos:
+# 1. release: published — evento nativo en este repo cuando `gh release create`
+#    corre con un token de usuario (el flujo canónico de Hydrosphere).
+# 2. repository_dispatch / stable-release-published — aviso explícito desde
+#    tools.distribution.publish, para no depender solo del webhook de release.
+# 3. workflow_dispatch — reintento manual sin republicar.
+#
+# Siempre se hace checkout de `main`. Un evento `release` deja github.ref en
+# refs/tags/... (HEAD separado); sin `ref: main` el `git push` no actualiza la
+# rama pública del README.
 #
 # No se ejecuta en push/PR. Un commit del README no publica releases ni
 # vuelve a disparar este workflow.
 #
 # Permisos mínimos:
-# - contents: write — leer el repo y, si el bloque cambió, hacer commit del README.
+# - contents: write — checkout y, si el bloque cambió, commit+push a main.
 # No se crean tags, no se suben assets y no se modifican releases.
 
 name: update-readme-release
@@ -16,6 +23,8 @@ name: update-readme-release
 "on":
   release:
     types: [published]
+  repository_dispatch:
+    types: [stable-release-published]
   workflow_dispatch:
     inputs:
       tag:
@@ -37,10 +46,14 @@ jobs:
     # Defensa extra: GitHub no dispara "published" para drafts; sí para prereleases.
     if: >-
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'repository_dispatch' ||
       (github.event.release.draft == false && github.event.release.prerelease == false)
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -53,24 +66,40 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           RELEASE_ID: ${{ github.event.release.id }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
+          DISPATCH_TAG: ${{ github.event.client_payload.tag_name }}
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/readme-release"
-          if [ "${EVENT_NAME}" = "release" ]; then
-            gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
-              > "${RUNNER_TEMP}/readme-release/release.json"
-          elif [ -n "${INPUT_TAG}" ]; then
-            gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${INPUT_TAG}" \
-              > "${RUNNER_TEMP}/readme-release/release.json"
-          else
-            gh api "repos/${GITHUB_REPOSITORY}/releases" \
-              --jq '[.[] | select(.draft==false and .prerelease==false)][0]' \
-              > "${RUNNER_TEMP}/readme-release/release.json"
-          fi
+          SELECTOR="$(
+            python scripts/update_readme_release.py \
+              --resolve-selector \
+              --event-name "${EVENT_NAME}" \
+              --release-id "${RELEASE_ID}" \
+              --input-tag "${INPUT_TAG}" \
+              --dispatch-tag "${DISPATCH_TAG}"
+          )"
+          export SELECTOR
+          echo "selector=${SELECTOR}"
           python - <<'PY'
-          import json, os, pathlib, sys
-          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "readme-release" / "release.json"
-          data = json.loads(path.read_text(encoding="utf-8"))
+          import json, os, pathlib, subprocess, sys
+          tmp = pathlib.Path(os.environ["RUNNER_TEMP"]) / "readme-release"
+          selector = json.loads(os.environ["SELECTOR"])
+          repo = os.environ["GITHUB_REPOSITORY"]
+          dest = tmp / "release.json"
+          if selector["mode"] == "id":
+              args = ["gh", "api", f"repos/{repo}/releases/{selector['value']}"]
+          elif selector["mode"] == "tag":
+              args = ["gh", "api", f"repos/{repo}/releases/tags/{selector['value']}"]
+          elif selector["mode"] == "latest_stable":
+              args = [
+                  "gh", "api", f"repos/{repo}/releases",
+                  "--jq", "[.[] | select(.draft==false and .prerelease==false)][0]",
+              ]
+          else:
+              print(f"ERROR: selector desconocido: {selector!r}", file=sys.stderr)
+              sys.exit(1)
+          dest.write_bytes(subprocess.check_output(args))
+          data = json.loads(dest.read_text(encoding="utf-8"))
           if not isinstance(data, dict) or not data.get("tag_name"):
               print("ERROR: no hay una release estable publicada para actualizar el README.", file=sys.stderr)
               sys.exit(1)
@@ -118,6 +147,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          git fetch origin main
+          git pull --ff-only origin main
           tmp="${RUNNER_TEMP}/readme-release"
           extra=()
           if [ -f "${tmp}/manifest.json" ]; then
@@ -162,4 +193,4 @@ jobs:
             exit 0
           fi
           git commit -m "docs(distribution): actualizar descarga a ${TAG_NAME}"
-          git push
+          git push origin HEAD:main
