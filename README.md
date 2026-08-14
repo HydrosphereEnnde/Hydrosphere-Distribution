@@ -3,19 +3,19 @@
 > Software profesional para preparar, analizar y documentar inspecciones de tuberías.
 
 <!-- RELEASE:START -->
-[![Descargar Hydrosphere para Windows](https://img.shields.io/badge/Descargar-Hydrosphere%20para%20Windows-0B5CAB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.4/Hydrosphere-0.0.4-win-x86_64-per-user.exe)
+[![Descargar Hydrosphere para Windows](https://img.shields.io/badge/Descargar-Hydrosphere%20para%20Windows-0B5CAB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.5/Hydrosphere-0.0.5-win-x86_64-per-user.exe)
 
 ## Descarga la última versión
 
 | Versión | Publicada | Instalador | Tamaño |
 | --- | --- | --- | --- |
-| 0.0.4 | 14 de agosto de 2026 | Windows 64 bits | 201 MB |
+| 0.0.5 | 14 de agosto de 2026 | Windows 64 bits | 201 MB |
 
-[Descargar Hydrosphere 0.0.4 para Windows](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.4/Hydrosphere-0.0.4-win-x86_64-per-user.exe)
+[Descargar Hydrosphere 0.0.5 para Windows](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.5/Hydrosphere-0.0.5-win-x86_64-per-user.exe)
 
-SHA-256: `2c7b0761161e7e37a7591d99e5e4d5d88ed9de8a383f905a453bdb291d1d5489`
+SHA-256: `7daa43e0b1191d634ed9e5e451a34a1747fbad47748432ec9a691c8f6e379823`
 
-[Ver notas de la versión](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/tag/v0.0.4) · [Ver todas las versiones](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases)
+[Ver notas de la versión](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/tag/v0.0.5) · [Ver todas las versiones](https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases)
 <!-- RELEASE:END -->
 
 ## Instalación
