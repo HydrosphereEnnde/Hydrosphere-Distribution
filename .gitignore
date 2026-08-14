@@ -29,6 +29,12 @@ build/
 *.sln
 *.swp
 
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
 # OS generated files
 Thumbs.db
 .DS_Store

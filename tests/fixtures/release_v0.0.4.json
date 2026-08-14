@@ -1,0 +1,25 @@
+{
+  "tag_name": "v0.0.4",
+  "name": "Hydrosphere 0.0.4 (stable)",
+  "draft": false,
+  "prerelease": false,
+  "published_at": "2026-08-14T14:55:31Z",
+  "html_url": "https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/tag/v0.0.4",
+  "url": "https://api.github.com/repos/HydrosphereEnnde/Hydrosphere-Distribution/releases/1",
+  "assets": [
+    {
+      "name": "Hydrosphere-0.0.4-win-x86_64-per-user.exe",
+      "size": 210920413,
+      "content_type": "application/x-msdownload",
+      "browser_download_url": "https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.4/Hydrosphere-0.0.4-win-x86_64-per-user.exe",
+      "digest": "sha256:2c7b0761161e7e37a7591d99e5e4d5d88ed9de8a383f905a453bdb291d1d5489"
+    },
+    {
+      "name": "hydrosphere-update-manifest-v1.json",
+      "size": 1217,
+      "content_type": "application/json",
+      "browser_download_url": "https://github.com/HydrosphereEnnde/Hydrosphere-Distribution/releases/download/v0.0.4/hydrosphere-update-manifest-v1.json",
+      "digest": "sha256:3e2bb059108447eee0dbbd54e85d03484f4c13be83a5c18e377282395ba55f54"
+    }
+  ]
+}
