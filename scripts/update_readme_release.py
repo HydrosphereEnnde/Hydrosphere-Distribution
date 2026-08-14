@@ -398,12 +398,53 @@ def update_readme_file(
     return meta
 
 
+def resolve_release_selector(
+    event_name: str,
+    *,
+    release_id: str = "",
+    input_tag: str = "",
+    dispatch_tag: str = "",
+) -> dict[str, str]:
+    """Selecciona qué release consultar. No usa notas ni otros campos del payload."""
+    name = (event_name or "").strip()
+    if name == "release":
+        rid = (release_id or "").strip()
+        if not rid.isdigit():
+            raise ReadmeReleaseError("release.id ausente o inválido.", code="missing_release_id")
+        return {"mode": "id", "value": rid}
+    if name == "repository_dispatch":
+        tag = (dispatch_tag or "").strip()
+        if not TAG_RE.fullmatch(tag):
+            raise ReadmeReleaseError(
+                "client_payload.tag_name ausente o no seguro.",
+                code="unsafe_tag",
+            )
+        return {"mode": "tag", "value": tag}
+    if name == "workflow_dispatch":
+        tag = (input_tag or "").strip()
+        if tag:
+            if not TAG_RE.fullmatch(tag):
+                raise ReadmeReleaseError("input tag inválido.", code="unsafe_tag")
+            return {"mode": "tag", "value": tag}
+        return {"mode": "latest_stable", "value": ""}
+    raise ReadmeReleaseError(f"Evento no soportado: {event_name!r}", code="unsupported_event")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Actualiza el bloque de descarga del README desde una release publicada.",
     )
-    parser.add_argument("--readme", type=Path, required=True, help="Ruta al README.md")
-    parser.add_argument("--release-json", type=Path, required=True, help="JSON de la release (API GitHub)")
+    parser.add_argument(
+        "--resolve-selector",
+        action="store_true",
+        help="Solo imprime cómo consultar la release según el evento de GitHub.",
+    )
+    parser.add_argument("--event-name", default="", help="github.event_name para --resolve-selector")
+    parser.add_argument("--release-id", default="", help="github.event.release.id")
+    parser.add_argument("--input-tag", default="", help="github.event.inputs.tag")
+    parser.add_argument("--dispatch-tag", default="", help="github.event.client_payload.tag_name")
+    parser.add_argument("--readme", type=Path, help="Ruta al README.md")
+    parser.add_argument("--release-json", type=Path, help="JSON de la release (API GitHub)")
     parser.add_argument(
         "--manifest-json",
         type=Path,
@@ -417,6 +458,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.resolve_selector:
+        try:
+            selector = resolve_release_selector(
+                args.event_name,
+                release_id=args.release_id,
+                input_tag=args.input_tag,
+                dispatch_tag=args.dispatch_tag,
+            )
+        except ReadmeReleaseError as exc:
+            print(f"ERROR [{exc.code}]: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(selector, ensure_ascii=False))
+        return 0
+    if args.readme is None or args.release_json is None:
+        print("ERROR: --readme y --release-json son obligatorios.", file=sys.stderr)
+        return 1
     try:
         release = load_json(args.release_json)
         if not isinstance(release, dict):
