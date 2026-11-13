@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hydrosphere — acceso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #071820;
+      --foam: #e8f4f2;
+      --muted: rgba(232, 244, 242, 0.7);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+      font-family: "Figtree", system-ui, sans-serif;
+      color: var(--foam);
+      background:
+        radial-gradient(900px 500px at 20% 0%, rgba(18, 168, 154, 0.28), transparent 55%),
+        linear-gradient(165deg, #031016 0%, #0a2a32 50%, #061820 100%);
+      text-align: center;
+    }
+
+    h1 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.75rem, 5vw, 2.4rem);
+      margin: 0 0 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0;
+      max-width: 22rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: #c4a574;
+      font-weight: 700;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(196, 165, 116, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hydrosphere</h1>
+    <p id="msg">Acceso completado. Puedes volver a la aplicación y cerrar esta ventana.</p>
+    <a href="../../">Volver a descargas</a>
+  </main>
+  <script>
+    /* Handoff futuro: deep link hydrosphere://auth/callback + hash/query de Supabase. */
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var err = params.get("error_description") || params.get("error");
+      if (err) {
+        document.getElementById("msg").textContent =
+          "No se pudo completar el acceso. Vuelve a intentarlo desde la aplicación.";
+      }
+      try {
+        var target = "hydrosphere://auth/callback" + window.location.search + window.location.hash;
+        if (window.location.search || window.location.hash) {
+          window.location.href = target;
+        }
+      } catch (_) { /* scheme aún no registrado en el SO */ }
+    })();
+  </script>
+</body>
+</html>
